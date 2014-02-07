@@ -1,114 +1,104 @@
-
 module Alu where
 
-mux2 a b control =
+import Main
+import Data.List (transpose)
+
+
+mux2test = do
+    c <- allValues
+    a <- allValues
+    b <- allValues
+    return (a, b, c, mux2 c a b)
+  where
+    allValues = [[True], [False]]
+
+
+mux2 control a b =
+  let nc  = notGate control
+      a'  = andGate [nc, a]
+      b'  = andGate [control, b]
+      out = orGate [a', b']
+  in out
+
+mux4 c0 c1 a b c d =
+  let ab  = mux2 c0 a b
+      cd  = mux2 c0 c d
+      out = mux2 c1 ab cd
+  in out
+
+logicUnit c0 c1 a b =
+  let and' = andGate [a, b]
+      or'  = orGate [a, b]
+      nor' = norGate [a, b]
+      xor' = xorGate [a, b]
+      out  = mux4 c0 c1 and' or' nor' xor'
+  in out
+
+fullAdder a b cin =
+  let ps   = xorGate [a, b]
+      sum  = xorGate [ps, cin]
+      pc1  = andGate [a, b]
+      pc2  = andGate [ps, cin]
+      cout = orGate [pc1, pc2]
+  in (sum, cout)
   
-// output = A (when control == 0) or B (when control == 1)
-module mux2(out, A, B, control);
-    output out;
-    input  A, B;
-    input  control;
-    wire   wA, wB, not_control;
-         
-    not n1(not_control, control);
-    and a1(wA, A, not_control);
-    and a2(wB, B, control);
-    or  o1(out, wA, wB);
-endmodule // mux2
+alu1 c0 c1 c2 a b cin =
+  let b'         = xorGate [b, c0]
+      (ar, cout) = fullAdder a b' cin
+      logic      = logicUnit c0 c1 a b
+      out        = mux2 c2 ar logic
+  in (out, cout)
 
-// output = A (when control == 00) or B (when control == 01) or
-//          C (when control == 10) or D (when control == 11)
-module mux4(out, A, B, C, D, control);
-    output      out;
-    input       A, B, C, D;
-    input [1:0] control;
-    wire        w1, w2;
+alu32 :: Wire -- Control Bit 0
+      -> Wire -- Control Bit 1
+      -> Wire -- Control Bit 2
+      -> ByteWire -- 32 Bit Wire addend
+      -> ByteWire -- 32 Bit Wire addend
+      -> (ByteWire, Wire, Wire, Wire)
+alu32 c0 c1 c2 a b =
+  let aluc            = alu1 c0 c1 c2
+      (out0, cout0)   = aluc (a !! 0) (b !! 0) c0
+      (out1, cout1)   = aluc (a !! 1) (b !! 1) cout0
+      (out2, cout2)   = aluc (a !! 2) (b !! 2) cout1
+      (out3, cout3)   = aluc (a !! 3) (b !! 3) cout2
+      (out4, cout4)   = aluc (a !! 4) (b !! 4) cout3
+      (out5, cout5)   = aluc (a !! 5) (b !! 5) cout4
+      (out6, cout6)   = aluc (a !! 6) (b !! 6) cout5
+      (out7, cout7)   = aluc (a !! 7) (b !! 7) cout6
+      (out8, cout8)   = aluc (a !! 8) (b !! 8) cout7
+      (out9, cout9)   = aluc (a !! 9) (b !! 9) cout8
+      (out10, cout10) = aluc (a !! 10) (b !! 10) cout9
+      (out11, cout11) = aluc (a !! 11) (b !! 11) cout10
+      (out12, cout12) = aluc (a !! 12) (b !! 12) cout11
+      (out13, cout13) = aluc (a !! 13) (b !! 13) cout12
+      (out14, cout14) = aluc (a !! 14) (b !! 14) cout13
+      (out15, cout15) = aluc (a !! 15) (b !! 15) cout14
+      (out16, cout16) = aluc (a !! 16) (b !! 16) cout15
+      (out17, cout17) = aluc (a !! 17) (b !! 17) cout16
+      (out18, cout18) = aluc (a !! 18) (b !! 18) cout17
+      (out19, cout19) = aluc (a !! 19) (b !! 19) cout18
+      (out20, cout20) = aluc (a !! 20) (b !! 20) cout19
+      (out21, cout21) = aluc (a !! 21) (b !! 21) cout20
+      (out22, cout22) = aluc (a !! 22) (b !! 22) cout21
+      (out23, cout23) = aluc (a !! 23) (b !! 23) cout22
+      (out24, cout24) = aluc (a !! 24) (b !! 24) cout23
+      (out25, cout25) = aluc (a !! 25) (b !! 25) cout24
+      (out26, cout26) = aluc (a !! 26) (b !! 26) cout25
+      (out27, cout27) = aluc (a !! 27) (b !! 27) cout26
+      (out28, cout28) = aluc (a !! 28) (b !! 28) cout27
+      (out29, cout29) = aluc (a !! 29) (b !! 29) cout28
+      (out30, cout30) = aluc (a !! 30) (b !! 30) cout29
+      (out31, cout31) = aluc (a !! 31) (b !! 31) cout30
 
-    mux2 m1(w1, A, B, control[0]);
-    mux2 m2(w2, C, D, control[0]);
-    mux2 m3(out, w1, w2, control[1]);
+      out = transpose [out0, out1, out2, out3, out4, out5, out6, out7, out8
+                      ,out9, out10, out11, out12, out13, out14, out15, out16
+                      ,out17, out18, out19, out20, out21, out22, out23, out24
+                      ,out25, out26, out27, out28, out29, out30, out31]
+      overflow = xorGate [cout30, cout31]
+    --TODO: implement uint2Wire
+    --zero     = uint2Wire "32b0"
+    --isZero   = equalsGate [out, zero]
+      isZero   = map (all (==False)) out
+      negative = out31
+  in (out, overflow, isZero, negative)
 
-endmodule // mux4
-
-
-`include "logicunit.v"
-
-module full_adder(sum, cout, a, b, cin);
-    output sum, cout;
-    input  a, b, cin;
-    wire   partial_s, partial_c1, partial_c2;
-
-    xor x0(partial_s, a, b);
-    xor x1(sum, partial_s, cin);
-    and a0(partial_c1, a, b);
-    and a0(partial_c2, partial_s, cin);
-    or  o1(cout, partial_c1, partial_c2);
-endmodule // full_adder
-
-`define ALU_ADD    3'h2
-`define ALU_SUB    3'h3
-`define ALU_AND    3'h4
-`define ALU_OR     3'h5
-`define ALU_NOR    3'h6
-`define ALU_XOR    3'h7
-
-// 01x - arithmetic, 1xx - logic
-module alu1(out, carryout, A, B, carryin, control);
-    output      out, carryout;
-    input       A, B, carryin;
-    input [2:0] control;
-    wire        l1, a1, b1;
-
-    xor x2(b1, B, control[0]);
-    full_adder f1(a1, carryout, A, b1, carryin); 
-
-    logicunit l2(l1, A, B, control[1:0]);
-    mux2 m1(out, a1, l1, control[2]);
-
-endmodule // alu1
-
-module alu32(out, overflow, zero, negative, A, B, control);
-    output [31:0] out;
-    output        overflow, zero, negative;
-    input  [31:0] A, B;
-    input   [2:0] control;
-    wire   [31:0] cout;
-
-    alu1 a0(out[0], cout[0], A[0], B[0], control[0], control);
-    alu1 a1(out[1], cout[1], A[1], B[1], cout[0], control);
-    alu1 a2(out[2], cout[2], A[2], B[2], cout[1], control);
-    alu1 a3(out[3], cout[3], A[3], B[3], cout[2], control);
-    alu1 a4(out[4], cout[4], A[4], B[4], cout[3], control);
-    alu1 a5(out[5], cout[5], A[5], B[5], cout[4], control);
-    alu1 a6(out[6], cout[6], A[6], B[6], cout[5], control);
-    alu1 a7(out[7], cout[7], A[7], B[7], cout[6], control);
-    alu1 a8(out[8], cout[8], A[8], B[8], cout[7], control);
-    alu1 a9(out[9], cout[9], A[9], B[9], cout[8], control);
-    alu1 a10(out[10], cout[10], A[10], B[10], cout[9], control);
-    alu1 a11(out[11], cout[11], A[11], B[11], cout[10], control);
-    alu1 a12(out[12], cout[12], A[12], B[12], cout[11], control);
-    alu1 a13(out[13], cout[13], A[13], B[13], cout[12], control);
-    alu1 a14(out[14], cout[14], A[14], B[14], cout[13], control);
-    alu1 a15(out[15], cout[15], A[15], B[15], cout[14], control);
-    alu1 a16(out[16], cout[16], A[16], B[16], cout[15], control);
-    alu1 a17(out[17], cout[17], A[17], B[17], cout[16], control);
-    alu1 a18(out[18], cout[18], A[18], B[18], cout[17], control);
-    alu1 a19(out[19], cout[19], A[19], B[19], cout[18], control);
-    alu1 a20(out[20], cout[20], A[20], B[20], cout[19], control);
-    alu1 a21(out[21], cout[21], A[21], B[21], cout[20], control);
-    alu1 a22(out[22], cout[22], A[22], B[22], cout[21], control);
-    alu1 a23(out[23], cout[23], A[23], B[23], cout[22], control);
-    alu1 a24(out[24], cout[24], A[24], B[24], cout[23], control);
-    alu1 a25(out[25], cout[25], A[25], B[25], cout[24], control);
-    alu1 a26(out[26], cout[26], A[26], B[26], cout[25], control);
-    alu1 a27(out[27], cout[27], A[27], B[27], cout[26], control);
-    alu1 a28(out[28], cout[28], A[28], B[28], cout[27], control);
-    alu1 a29(out[29], cout[29], A[29], B[29], cout[28], control);
-    alu1 a30(out[30], cout[30], A[30], B[30], cout[29], control);
-    alu1 a31(out[31], cout[31], A[31], B[31], cout[30], control);
-
-    xor x1(overflow, cout[30], cout[31]);  
-    assign zero = (out == 0);
-    assign negative = out[31];
-
-endmodule // alu32
