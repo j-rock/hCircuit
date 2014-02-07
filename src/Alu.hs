@@ -4,11 +4,14 @@ import Main
 import Data.List (transpose)
 
 
-mux2test = do
-    c <- allValues
-    a <- allValues
-    b <- allValues
-    return (a, b, c, mux2 c a b)
+mux4test = do
+    c0 <- allValues
+    c1 <- allValues
+    a  <- allValues
+    b  <- allValues
+    c  <- allValues
+    d  <- allValues
+    return (a, b, c, d, c0, c1, mux4 c0 c1 a b c d)
   where
     allValues = [[True], [False]]
 
