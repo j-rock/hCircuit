@@ -8,7 +8,6 @@ type Wire = [Binary] -- A list of discrete states
 type ByteWire = [[Binary]] -- A list of simultaneous discrete states
 
 
-
 oneToOne :: (Binary -> Binary) -> Wire -> Wire
 oneToOne op = map op
 
@@ -18,20 +17,22 @@ notGate = oneToOne not
 manyToOne :: ([Binary] -> Binary) -> [Wire] -> Wire
 manyToOne op = map op . transpose
 
-orGate = manyToOne or
 norGate = notGate . orGate
+orGate = manyToOne or
 
-andGate = manyToOne and
 nandGate = notGate . andGate
+andGate = manyToOne and
 
-xorGate = manyToOne $ xor
-  where xor = foldr1 (/=)
 xnorGate = notGate . xorGate
+xorGate = manyToOne $ xor
+  where
+    xor = foldr1 (/=)
 
-equalsGate = manyToOne $ allSame
-  where allSame [] = True
-        allSame (x:xs) = all (== x) xs
 nequalsGate = notGate . equalsGate
+equalsGate = manyToOne $ allSame
+  where
+    allSame [] = True
+    allSame (x:xs) = all (== x) xs
 
 testOneToOne g = g [True, False]
 testManyToOne g =
