@@ -5,39 +5,43 @@ import Data.List (transpose)
 
 type Binary = Bool
 type Wire = [Binary] -- A list of discrete states
-type ByteWire = [[Binary]] -- A list of simultaneous discrete states
+type Bytewire = [[Binary]] -- A list of simultaneous discrete states
 
+wireValues = [[True], [False]]
 
-oneToOne :: (Binary -> Binary) -> Wire -> Wire
-oneToOne op = map op
+wireToWire :: (Binary -> Binary) -> Wire -> Wire
+wireToWire = map
 
-wire = oneToOne id
-notGate = oneToOne not
+testWireToWire g = do
+  input <- wireValues
+  return (input, g input)
 
-manyToOne :: ([Binary] -> Binary) -> [Wire] -> Wire
-manyToOne op = map op . transpose
+wire = wireToWire id
+notGate = wireToWire not
+
+wiresToWire :: ([Binary] -> Binary) -> [Wire] -> Wire
+wiresToWire op = map op . transpose
+
+testWiresToWire g = do
+  a <- wireValues
+  b <- wireValues
+  c <- wireValues
+  return (a, b, c, g [a, b, c])
 
 norGate = notGate . orGate
-orGate = manyToOne or
+orGate = wiresToWire or
 
 nandGate = notGate . andGate
-andGate = manyToOne and
+andGate = wiresToWire and
 
 xnorGate = notGate . xorGate
-xorGate = manyToOne $ xor
+xorGate = wiresToWire $ xor
   where
     xor = foldr1 (/=)
 
 nequalsGate = notGate . equalsGate
-equalsGate = manyToOne $ allSame
+equalsGate = wiresToWire $ allSame
   where
     allSame [] = True
     allSame (x:xs) = all (== x) xs
-
-testOneToOne g = g [True, False]
-testManyToOne g =
-  let w1 = [True, True, True, True, False, False, False, False]
-      w2 = [True, True, False, False, True, True, False, False]
-      w3 = [True, False, True, False, True, False, True, False]
-  in  g [w1, w2, w3]
 
