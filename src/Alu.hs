@@ -14,7 +14,6 @@ mux4test = do
   where
     allValues = [[True], [False]]
 
-
 mux2 control a b =
   let nc  = notGate control
       a'  = andGate [nc, a]
@@ -58,13 +57,12 @@ alu :: Wire -- Control Bit 0
     -> Bytewire -- N-Bit Wire
     -> (Bytewire, Wire, Wire, Wire)
 alu c0 c1 c2 a b =
-  let (out, cout) = unzip (zipWith3 (alu1 c0 c1 c2) a b cin)
-      cin         = c0 : cout
+  let a' = reverse a
+      b' = reverse b
+      (out, cout) = unzip (zipWith3 (alu1 c0 c1 c2) a' b' cin)
+      cin      = c0 : cout
       overflow = xorGate . take 2 . reverse $ cout
-    --TODO: implement int2Wire
-    --zero     = int2Wire "32b0"
-    --isZero   = equalsGate [out, zero]
-      isZero   = map (all not) out
+      isZero   = norGate out
       negative = last out
-  in (out, overflow, isZero, negative)
+  in (reverse out, overflow, isZero, negative)
 

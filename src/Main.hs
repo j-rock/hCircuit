@@ -35,13 +35,14 @@ nandGate = notGate . andGate
 andGate = wiresToWire and
 
 xnorGate = notGate . xorGate
-xorGate = wiresToWire $ xor
+xorGate = wiresToWire xor
   where
     xor = foldr1 (/=)
 
 nequalsGate = notGate . equalsGate
-equalsGate = wiresToWire $ allSame
+equalsGate = wiresToWire allSame
   where
     allSame [] = True
     allSame (x:xs) = all (== x) xs
+
 
